@@ -1,12 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <DebugType>full</DebugType>
+        <PackageId>Cashwu.AspNet.Scheduled</PackageId>
+        <PackageProjectUrl>https://github.com/cashwu/Cashwu.AspNet.Scheduled</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageDescription>Asp.Net Scheduled</PackageDescription>
+        <Version>1.0.0</Version>
+        <Company>cashwu</Company>
+        <AssemblyName>Cashwu.AspNet.Scheduled</AssemblyName>
+        <RootNamespace>Cashwu.AspNet.Scheduled</RootNamespace>
+        <Authors>cashwu</Authors>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="NCrontab" Version="3.3.1" />
-      <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
     </ItemGroup>
 
 </Project>
