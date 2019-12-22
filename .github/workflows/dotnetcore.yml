@@ -1,0 +1,24 @@
+name: .NET Core
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: setup
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 2.2.207   
+    - name: clean
+      run: dotnet clean -c Release
+    - name: build
+      run: dotnet build
+    - name: dotnet pack
+      run: dotnet pack ./Cashwu.AspNet.Scheduled/Cashwu.AspNet.Scheduled.csproj -c Release -o ../release
+    - name: nuget publish
+      if: github.ref == 'refs/heads/master'
+      continue-on-error: true
+      run: |
+        dotnet nuget push ./release/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
