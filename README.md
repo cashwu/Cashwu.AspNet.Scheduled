@@ -1,6 +1,6 @@
 # Asp.Net scheduled
 
-[![actions](https://github.com/cashwu/Cashwu.AspNet.Scheduled/workflows/.NET%20Core/badge.svg)](https://github.com/cashwu/Cashwu.AspNet.Scheduled/actions)
+[![actions](https://github.com/cashwu/Cashwu.AspNet.Scheduled/workflows/.NET%20Core/badge.svg?branch=master)](https://github.com/cashwu/Cashwu.AspNet.Scheduled/actions)
 
 ---
 
