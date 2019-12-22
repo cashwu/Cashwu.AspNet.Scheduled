@@ -1,5 +1,7 @@
 # Asp.Net scheduled
 
+[![actions](https://github.com/cashwu/Cashwu.AspNet.Scheduled/workflows/.NET%20Core/badge.svg)](https://github.com/cashwu/Cashwu.AspNet.Scheduled/actions)
+
 ---
 
 [![Nuget](https://img.shields.io/badge/Nuget-Cashwu.Aspnet.Scheduled-blue.svg)](https://www.nuget.org/packages/Cashwu.Aspnet.Scheduled)
