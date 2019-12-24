@@ -15,8 +15,13 @@ jobs:
       run: dotnet clean -c Release
     - name: build
       run: dotnet build
+    - name: generate build number
+      uses: einaregilsson/build-number@v2 
+      with:
+        token: ${{secrets.github_token}}
     - name: dotnet pack
-      run: dotnet pack ./Cashwu.AspNet.Scheduled/Cashwu.AspNet.Scheduled.csproj -c Release -o ../release
+      if: github.ref == 'refs/heads/master'
+      run: dotnet pack ./Cashwu.AspNet.Scheduled/Cashwu.AspNet.Scheduled.csproj -c Release -o ../release -p:PackageVersion=1.0.$BUILD_NUMBER
     - name: nuget publish
       if: github.ref == 'refs/heads/master'
       continue-on-error: true
