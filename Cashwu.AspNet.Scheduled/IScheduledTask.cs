@@ -6,7 +6,7 @@ namespace Cashwu.AspNet.Scheduled
     public interface IScheduledTask
     {
         /// <summary>
-        /// Cron job 
+        /// Cron job, set null will just run once  
         /// </summary>
         string Schedule { get; }
 
@@ -14,7 +14,12 @@ namespace Cashwu.AspNet.Scheduled
         /// Set Lazy = false, will application start run
         /// </summary>
         bool IsLazy { get; }
-
+        
+        /// <summary>
+        /// Task priority
+        /// </summary>
+        int Order { get; }
+        
         /// <summary>
         /// Job content
         /// </summary>
