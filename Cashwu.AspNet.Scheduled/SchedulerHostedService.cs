@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using NCrontab;
@@ -10,23 +9,44 @@ namespace Cashwu.AspNet.Scheduled
 {
     internal class SchedulerHostedService
     {
+        private const string LogPrefix = "Cashwu.Scheduler";
+        
         private readonly List<ScheduledTaskWrapper> _scheduledTasks = new List<ScheduledTaskWrapper>();
 
-        public event EventHandler<UnobservedTaskExceptionEventArgs> UnobservedTaskException;
+        public event EventHandler<UnobservedTaskExceptionEventArgs> UnobservedTaskExceptionEvent;
+        
+        public event EventHandler<string> LogEvent;
 
         internal SchedulerHostedService(string prefixAssemblyName)
         {
             var referenceTime = DateTime.UtcNow;
+            var scheduledTasks = ScheduledTasks(prefixAssemblyName);
 
-            foreach (var scheduledTask in ScheduledTasks(prefixAssemblyName))
+            foreach (var scheduledTask in scheduledTasks)
             {
-                var scheduledTaskWrapper = new ScheduledTaskWrapper
-                {
-                    Schedule = CrontabSchedule.Parse(scheduledTask.Schedule),
-                    Task = scheduledTask
-                };
+                var scheduledTaskWrapper = new ScheduledTaskWrapper();
 
-                scheduledTaskWrapper.NextRuntTime = scheduledTaskWrapper.Schedule.GetNextOccurrence(referenceTime);
+                scheduledTaskWrapper.BaseTime = referenceTime;
+
+                if (string.IsNullOrWhiteSpace(scheduledTask.Schedule))
+                {
+                    scheduledTaskWrapper.Task = scheduledTask;
+                    scheduledTaskWrapper.NextRuntTime = referenceTime;
+                }
+                else
+                {
+                    scheduledTaskWrapper.Schedule = CrontabSchedule.Parse(scheduledTask.Schedule);
+                    scheduledTaskWrapper.Task = scheduledTask;
+
+                    if (scheduledTask.IsLazy)
+                    {
+                        scheduledTaskWrapper.NextRuntTime = referenceTime.AddSeconds(10);
+                    }
+                    else
+                    {
+                        scheduledTaskWrapper.NextRuntTime = referenceTime;
+                    }
+                }
 
                 _scheduledTasks.Add(scheduledTaskWrapper);
             }
@@ -34,6 +54,8 @@ namespace Cashwu.AspNet.Scheduled
 
         internal async Task StartAsync(CancellationToken stoppingToken)
         {
+            LogEvent?.Invoke(this, $"--- {LogPrefix} {nameof(StartAsync)} ---");
+            
             while (!stoppingToken.IsCancellationRequested)
             {
                 await ExecuteOnceAsync(stoppingToken);
@@ -43,16 +65,17 @@ namespace Cashwu.AspNet.Scheduled
 
         private async Task ExecuteOnceAsync(CancellationToken stoppingToken)
         {
-            var taskFactory = new TaskFactory(TaskScheduler.Current);
             var referenceTime = DateTime.UtcNow;
 
-            var tasksThatShouldRun = _scheduledTasks.Where(a => a.ShouldRun(referenceTime)).ToList();
+            var tasksThatShouldRun = _scheduledTasks.Where(a => a.ShouldRun(referenceTime)).OrderBy(a => a.Task.Order);
 
             foreach (var taskThatShouldRun in tasksThatShouldRun)
             {
+                LogEvent?.Invoke(this, $"--- {LogPrefix} Run {taskThatShouldRun.Task} ---");
+            
                 taskThatShouldRun.Increment();
 
-                await taskFactory.StartNew(async () =>
+                await Task.Run(async () =>
                 {
                     try
                     {
@@ -60,9 +83,11 @@ namespace Cashwu.AspNet.Scheduled
                     }
                     catch (Exception ex)
                     {
+                        LogEvent?.Invoke(this, ex.ToString());
+                        
                         var args = new UnobservedTaskExceptionEventArgs(ex as AggregateException ?? new AggregateException(ex));
 
-                        UnobservedTaskException?.Invoke(this, args);
+                        UnobservedTaskExceptionEvent?.Invoke(this, args);
 
                         if (!args.Observed)
                         {

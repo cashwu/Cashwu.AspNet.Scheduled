@@ -5,32 +5,36 @@ namespace Cashwu.AspNet.Scheduled
 {
     internal class ScheduledTaskWrapper
     {
-        private bool _firstRunEnd;
-
-        public CrontabSchedule Schedule { get; set; }
+        private bool _firstRun = true;
+        
+        public CrontabSchedule Schedule { get; set;  }
 
         public IScheduledTask Task { get; set; }
 
         public DateTime NextRuntTime { get; set; }
-
-        public DateTime LastRunTime { get; set; }
-
-        public bool ShouldApplicationStartedRun => Task.IsLazy == false && _firstRunEnd == false;
+        
+        public DateTime BaseTime { get; set; }
 
         public void Increment()
         {
-            LastRunTime = NextRuntTime;
-            NextRuntTime = Schedule.GetNextOccurrence(NextRuntTime);
-
-            if (ShouldApplicationStartedRun)
+            if (Schedule == null)
             {
-                _firstRunEnd = true;
+                NextRuntTime = DateTime.MaxValue;
+            }
+            else
+            {
+                NextRuntTime = Schedule.GetNextOccurrence(_firstRun ? BaseTime : NextRuntTime);
+            }
+
+            if (_firstRun)
+            {
+                _firstRun = false;
             }
         }
 
         public bool ShouldRun(DateTime currentTime)
         {
-            return (NextRuntTime < currentTime && LastRunTime != NextRuntTime) || ShouldApplicationStartedRun;
+            return currentTime > NextRuntTime;
         }
     }
 }
