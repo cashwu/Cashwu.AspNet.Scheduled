@@ -14,12 +14,17 @@ namespace Cashwu.AspNet.Scheduled
         /// Set Lazy = false, will application start run
         /// </summary>
         bool IsLazy { get; }
-        
+
         /// <summary>
         /// Task priority
         /// </summary>
         int Order { get; }
-        
+
+        /// <summary>
+        /// Task delay second run
+        /// </summary>
+        int Delay { get; }
+
         /// <summary>
         /// Job content
         /// </summary>

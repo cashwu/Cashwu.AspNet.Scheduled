@@ -15,6 +15,8 @@ namespace Cashwu.AspNet.Scheduled
         
         public DateTime BaseTime { get; set; }
 
+        public int Order { get; set; }
+
         public void Increment()
         {
             if (Schedule == null)

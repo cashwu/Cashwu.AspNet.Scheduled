@@ -24,9 +24,10 @@ namespace Cashwu.AspNet.Scheduled
 
             foreach (var scheduledTask in scheduledTasks)
             {
-                var scheduledTaskWrapper = new ScheduledTaskWrapper();
-
-                scheduledTaskWrapper.BaseTime = referenceTime;
+                var scheduledTaskWrapper = new ScheduledTaskWrapper
+                {
+                    BaseTime = referenceTime
+                };
 
                 if (string.IsNullOrWhiteSpace(scheduledTask.Schedule))
                 {
@@ -48,6 +49,8 @@ namespace Cashwu.AspNet.Scheduled
                     }
                 }
 
+                scheduledTaskWrapper.Order = scheduledTask.Order == 0 ? int.MaxValue : scheduledTask.Order;
+
                 _scheduledTasks.Add(scheduledTaskWrapper);
             }
         }
@@ -67,7 +70,7 @@ namespace Cashwu.AspNet.Scheduled
         {
             var referenceTime = DateTime.UtcNow;
 
-            var tasksThatShouldRun = _scheduledTasks.Where(a => a.ShouldRun(referenceTime)).OrderBy(a => a.Task.Order);
+            var tasksThatShouldRun = _scheduledTasks.Where(a => a.ShouldRun(referenceTime)).OrderBy(a => a.Order);
 
             foreach (var taskThatShouldRun in tasksThatShouldRun)
             {
@@ -79,6 +82,11 @@ namespace Cashwu.AspNet.Scheduled
                 {
                     try
                     {
+                        if (taskThatShouldRun.Task.Delay != 0)
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(taskThatShouldRun.Task.Delay), stoppingToken);
+                        }
+                        
                         await taskThatShouldRun.Task.ExecuteAsync(stoppingToken);
                     }
                     catch (Exception ex)
